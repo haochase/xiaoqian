@@ -39,7 +39,8 @@ const fetchHistory = async () => {
 };
 
 const initWebSocket = () => {
-  ws = new WebSocket(`ws://localhost:8000/ws/chat/${sessionId}`);
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${window.location.host}/ws/chat/${sessionId}`);
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     messages.value.push({ id: data.id, role: data.role, content: data.content });
