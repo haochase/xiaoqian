@@ -9,6 +9,11 @@ app = FastAPI(
     description="小倩 · 主动式兴趣聊天助手 API"
 )
 
+@app.on_event("startup")
+async def startup_event():
+    from app.core.database import init_db
+    await init_db()
+
 # CORS 配置
 app.add_middleware(
     CORSMiddleware,

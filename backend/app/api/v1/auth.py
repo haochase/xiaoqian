@@ -35,7 +35,7 @@ async def verify_otp(request: OTPLoginRequest, db: AsyncSession = Depends(get_db
         await db.refresh(user)
     
     # 生成 JWT
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(subject=str(user.id))
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me")
