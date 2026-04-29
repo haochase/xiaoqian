@@ -20,8 +20,8 @@ app.add_middleware(
 
 # 挂载路由
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
-# app.include_router(topics.router, prefix="/api/v1/topics", tags=["话题"])
-# app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["会话"])
+app.include_router(topics.router, prefix="/api/v1/topics", tags=["话题"])
+app.include_router(sessions.router, prefix="/api/v1/sessions", tags=["会话"])
 app.include_router(ws.router, prefix="/ws", tags=["WebSocket"])
 
 @app.get("/")

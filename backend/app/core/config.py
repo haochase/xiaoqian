@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     # 基础项目信息
     PROJECT_NAME: str = "XiaoQian"
     VERSION: str = "0.1.0"
+    DEBUG: bool = Field(default=False)
+    APP_ENV: str = Field(default="development")
 
     # 数据库（Postgres）
     POSTGRES_HOST: str = Field(default="localhost")

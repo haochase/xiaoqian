@@ -4,7 +4,7 @@ from app.core.config import settings
 
 # 异步引擎
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    str(settings.DATABASE_URL),
     echo=settings.DEBUG,
     pool_pre_ping=True,
     pool_size=10,
