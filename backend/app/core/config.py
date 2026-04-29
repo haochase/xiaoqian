@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     EMAIL_USERNAME: str = Field(default="your_email@example.com")
     EMAIL_PASSWORD: str = Field(default="email_password")
 
+    # LLM Settings
+    LLM_API_KEY: str = Field(default="")
+    LLM_API_BASE_URL: str = Field(default="https://api.openai.com/v1")
+    LLM_MODEL_NAME: str = Field(default="gpt-3.5-turbo")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
