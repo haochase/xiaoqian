@@ -1,5 +1,6 @@
 import os
-from pydantic import BaseSettings, Field, AnyUrl
+from pydantic import Field, AnyUrl
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # 基础项目信息
