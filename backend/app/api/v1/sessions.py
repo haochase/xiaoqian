@@ -12,6 +12,6 @@ class SessionSchema(BaseModel):
     status: str
     started_at: datetime
 
-@router.get("/", response_model=List[SessionSchema])
+@router.get("", response_model=List[SessionSchema])
 async def list_sessions():
     return []
