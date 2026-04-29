@@ -6,7 +6,7 @@ from app.api.v1 import auth, topics, sessions, ws
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="小倩 · 主动式兴趣聊天助手 API"
+    description="小千 · 主动式兴趣聊天助手 API"
 )
 
 # CORS 配置
