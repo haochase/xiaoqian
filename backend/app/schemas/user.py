@@ -1,22 +1,36 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
-class UserCreate(BaseModel):
-    phone: str = Field(..., regex=r"^\+?\d{7,15}$", description="国际化手机号")
-    nickname: Optional[str] = None
-    # 实际发送 OTP 的方式在 auth 路由中实现，这里仅接受手机号
 
-class UserRead(BaseModel):
-    id: str
+# ─── 请求体 ───
+class OTPRequest(BaseModel):
+    phone: str = Field(..., pattern=r"^\+?\d{7,15}$", description="手机号（支持国际格式）")
+
+
+class OTPLoginRequest(BaseModel):
+    phone: str = Field(..., pattern=r"^\+?\d{7,15}$")
+    otp: str = Field(..., min_length=4, max_length=6)
+
+
+class UserUpdate(BaseModel):
+    nickname: Optional[str] = Field(None, min_length=1, max_length=50)
+    timezone: Optional[str] = None
+
+
+# ─── 响应体 ───
+class UserResponse(BaseModel):
+    id: UUID
     phone: str
     nickname: Optional[str] = None
     role: str
     timezone: str
-    created_at: str
+    is_active: bool
 
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
+
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user: UserResponse

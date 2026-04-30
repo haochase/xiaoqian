@@ -1,24 +1,50 @@
-import os
-from typing import Generator
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException, status
-from jose import JWTError
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
 from app.core.security import decode_access_token
 from app.core.database import get_db
 from app.models.user import User
+from app.services.user_service import get_user_by_id
 
-async def get_current_user(token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)) -> User:
-    """解析 JWT 并返回对应的 User 实例。若 token 无效或用户不存在则抛出 401。"""
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
-    payload = decode_access_token(token)
-    if payload is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
-    result = await db.execute("SELECT * FROM users WHERE id = :uid", {"uid": user_id})
-    user_row = result.fetchone()
-    if not user_row:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return user_row[0]
+security = HTTPBearer(auto_error=False)
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """从 Authorization header 解析 JWT 并返回 User"""
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header",
+        )
+
+    token = credentials.credentials
+    user_id_str = decode_access_token(token)
+
+    if not user_id_str:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    import uuid
+    try:
+        user_id = uuid.UUID(user_id_str)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+        )
+
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    return user
