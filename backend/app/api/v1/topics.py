@@ -5,11 +5,16 @@ import uuid
 
 router = APIRouter()
 
-class TopicSchema(BaseModel):
-    id: uuid.UUID
+class TopicBase(BaseModel):
     title: str
     category: str
-    is_active: bool
+    is_active: bool = True
+
+class TopicCreate(TopicBase):
+    pass
+
+class TopicSchema(TopicBase):
+    id: uuid.UUID
 
 @router.get("", response_model=List[TopicSchema])
 async def list_topics():
@@ -18,6 +23,11 @@ async def list_topics():
         {"id": uuid.uuid4(), "title": "本地天气预报", "category": "weather", "is_active": True}
     ]
 
-@router.post("")
-async def create_topic(topic: TopicSchema):
-    return topic
+@router.post("", response_model=TopicSchema)
+async def create_topic(topic_in: TopicCreate):
+    new_topic = TopicSchema(
+        id=uuid.uuid4(),
+        **topic_in.dict()
+    )
+    return new_topic
+
