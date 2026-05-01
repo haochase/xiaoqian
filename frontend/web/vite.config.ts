@@ -14,12 +14,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://api:8000',
+        target: 'http://localhost:8081',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
       },
       '/ws': {
-        target: 'ws://api:8000',
+        target: 'ws://localhost:8081',
         ws: true,
       },
     },

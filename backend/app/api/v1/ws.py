@@ -62,12 +62,16 @@ async def websocket_endpoint(
 
         # 3. 查找或创建活跃会话
         session = await get_active_session(db, user_id, uuid.UUID(topic_id))
+        is_new = False
         if not session:
             session = await create_session(db, user_id, uuid.UUID(topic_id))
+            is_new = True
 
         # 4. 发送历史消息（如果有）
-        if session.messages:
+        history_cache = []
+        if not is_new and session.messages:
             for msg in session.messages:
+                history_cache.append(msg)
                 await websocket.send_json({
                     "id": str(msg.id),
                     "role": msg.role,
@@ -91,11 +95,12 @@ async def websocket_endpoint(
                 continue
 
             # 保存用户消息到 DB
-            await add_message(db, session.id, "user", user_input)
+            user_msg = await add_message(db, session.id, "user", user_input)
+            history_cache.append(user_msg)
 
-            # 构建对话上下文
+            # 构建对话上下文（从本地缓存，避免懒加载触发 greenlet 错误）
             history = []
-            for msg in (session.messages or []):
+            for msg in history_cache:
                 if msg.role == "user":
                     history.append(HumanMessage(content=msg.content))
                 else:
@@ -115,6 +120,7 @@ async def websocket_endpoint(
 
             # 保存 AI 回复到 DB
             saved_msg = await add_message(db, session.id, "assistant", ai_message.content)
+            history_cache.append(saved_msg)
 
             # 发送回前端
             await websocket.send_json({

@@ -71,6 +71,33 @@ async def get_session(
     return _format_session(session)
 
 
+@router.get("/{session_id}/messages")
+async def get_session_messages(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """获取会话消息列表 — 支持 session ID 或 topic ID"""
+    import uuid
+    session = await chat_service.get_session(db, uuid.UUID(session_id), current_user.id)
+    if not session:
+        session = await chat_service.get_active_session(db, current_user.id, uuid.UUID(session_id))
+    if not session:
+        return []
+    messages = getattr(session, 'messages', []) or []
+    return [
+        {
+            "id": str(m.id),
+            "session_id": str(m.session_id),
+            "role": m.role,
+            "content": m.content,
+            "audio_url": m.audio_url,
+            "created_at": m.created_at.isoformat() if m.created_at else None,
+        }
+        for m in messages
+    ]
+
+
 @router.post("/{session_id}/end")
 async def end_session(
     session_id: str,

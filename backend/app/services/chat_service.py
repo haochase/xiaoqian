@@ -94,9 +94,10 @@ async def end_session(db: AsyncSession, session_id: uuid.UUID, user_id: uuid.UUI
 async def get_active_session(
     db: AsyncSession, user_id: uuid.UUID, topic_id: uuid.UUID
 ) -> Optional[ChatSession]:
-    """获取用户某个话题下的活跃会话"""
+    """获取用户某个话题下的活跃会话（含消息）"""
     result = await db.execute(
         select(ChatSession)
+        .options(joinedload(ChatSession.messages))
         .where(
             ChatSession.user_id == user_id,
             ChatSession.topic_id == topic_id,
@@ -105,4 +106,4 @@ async def get_active_session(
         .order_by(ChatSession.started_at.desc())
         .limit(1)
     )
-    return result.scalar_one_or_none()
+    return result.unique().scalar_one_or_none()
